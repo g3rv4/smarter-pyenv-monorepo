@@ -1,0 +1,70 @@
+{
+  "name": "smarter-pyenv-monorepo",
+  "displayName": "Smarter Pyenv Monorepo",
+  "description": "Improves the experience working on monorepos using pyenv and poetry.",
+  "publisher": "g3rv4",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/g3rv4/smarter-pyenv-monorepo.git"
+  },
+  "icon": "icon.png",
+  "keywords": [
+    "poetry",
+    "monorepo",
+    "python",
+    "pyenv",
+    "pytest",
+    "interpreter",
+    "environment",
+    "venv"
+  ],
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "workspaceContains:pyproject.toml"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "smarter-pyenv-monorepo.setTestConfiguration",
+        "title": "Set test configuration to the current interpreter",
+        "category": "Smarter Pyenv Monorepo"
+      }
+    ],
+    "languages": [
+      {
+        "id": "python",
+        "extensions": [".py"]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
+  },
+  "extensionDependencies": [
+    "ms-python.python"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.6.0",
+    "@typescript-eslint/parser": "^8.6.0",
+    "eslint": "^9.11.0",
+    "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "@vscode/python-extension": "^1.0.5"
+  }
+}
