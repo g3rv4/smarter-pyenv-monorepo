@@ -18,7 +18,7 @@
     "environment",
     "venv"
   ],
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -36,12 +36,19 @@
         "command": "smarter-pyenv-monorepo.setTestConfiguration",
         "title": "Set test configuration to the current interpreter",
         "category": "Smarter Pyenv Monorepo"
+      },
+      {
+        "command": "smarter-pyenv-monorepo.clearTestConfiguration",
+        "title": "Clear test configuration",
+        "category": "Smarter Pyenv Monorepo"
       }
     ],
     "languages": [
       {
         "id": "python",
-        "extensions": [".py"]
+        "extensions": [
+          ".py"
+        ]
       }
     ]
   },

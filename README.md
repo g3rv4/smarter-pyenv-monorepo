@@ -1,13 +1,11 @@
 # Smarter Pyenv Monorepo
 
-This extension was built from [Poetry Monorepo](https://github.com/ihsan-96/vscode-python-poetry-monorepo), so thank you @ihsan-96!
-
-I decided to start a separate one because I have some needs that were not fully addressed by that extension.
+Simplify working on python monorepos that use pyenv.
 
 ## What does it do?
 
 * Automatically select the python interpreter when you open a file
-* Adds a command to the palette so that you can set pytest to use the `/tests` folder of the current active project
+* Adds a command to the palette so that you can set pytest to use the tests of the current active project (better results are achieved by setting the `testpaths` on the `[tool.pytest.ini_options]` section of `pyproject.toml`)
 
 ## When is this useful?
 
@@ -25,4 +23,4 @@ This extension is licensed under the [MIT License](LICENSE).
 
 ## Acknowledgments
 
-Special thanks to @ihsan-96 for building the [Poetry Monorepo](https://github.com/ihsan-96/vscode-python-poetry-monorepo) extension (and licensing it as MIT).
+Special thanks to @ihsan-96 for building the [Poetry Monorepo](https://marketplace.visualstudio.com/items?itemName=ameenahsanma.poetry-monorepo) extension (and licensing it as MIT). I used that as the base of this work.

@@ -17,31 +17,50 @@ export async function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(disposable);
 
-    const myCommand = vscode.commands.registerCommand('smarter-pyenv-monorepo.setTestConfiguration', () => {
-        const poetryPath = context.workspaceState.get<string>('poetryPath');
-        if (!poetryPath) {
-            vscode.window.showErrorMessage("No workspace folder found");
+    const testConfigurationCommand = vscode.commands.registerCommand('smarter-pyenv-monorepo.setTestConfiguration', () => {
+        const tomlPath = context.workspaceState.get<string>('tomlPath');
+        const interpreterPath = context.workspaceState.get<string>('interpreterPath');
+        if (!tomlPath) {
+            vscode.window.showErrorMessage("No tomlPath found");
+            return
+        }
+        if (!interpreterPath) {
+            vscode.window.showErrorMessage("No interpreterPath found");
             return
         }
 
-        const testFolder = path.join(poetryPath, "tests");
+        const testFolder = path.join(tomlPath, "tests");
         if (fs.existsSync(testFolder)) {
-            const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(poetryPath))?.uri.fsPath
+            const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(tomlPath))?.uri.fsPath
             if (!workspaceFolder) {
                 return
             }
 
-            const testFolderRelative = testFolder.replace(workspaceFolder + '/', '');
+            const pyTestPath = path.join(path.dirname(interpreterPath), "pytest");
             vscode.workspace.getConfiguration('python').update('testing.pytestEnabled', false, vscode.ConfigurationTarget.Global);
+            fs.rm(path.join(workspaceFolder, ".pytest_cache"), { recursive: true, force: true }, () => {});
             setTimeout(() => {
-                vscode.workspace.getConfiguration('python').update('testing.pytestArgs', [testFolderRelative], vscode.ConfigurationTarget.Global);
+                vscode.window.showInformationMessage(`Setting test cwd to ${tomlPath}`);
+                vscode.window.showInformationMessage(`Setting pytestPath to ${pyTestPath}`);
+                vscode.workspace.getConfiguration('python').update('testing.pytestPath', pyTestPath, vscode.ConfigurationTarget.Global);
+                vscode.workspace.getConfiguration('python').update('testing.cwd', tomlPath, vscode.ConfigurationTarget.Global);
                 vscode.workspace.getConfiguration('python').update('testing.pytestEnabled', true, vscode.ConfigurationTarget.Global);
-            }, 2000)
 
+            }, 1000)
         }
     });
 
-    context.subscriptions.push(myCommand);
+    context.subscriptions.push(testConfigurationCommand);
+
+    const clearTestConfigurationCommand = vscode.commands.registerCommand('smarter-pyenv-monorepo.clearTestConfiguration', () => {
+        vscode.workspace.getConfiguration('python').update('testing.pytestPath', undefined, vscode.ConfigurationTarget.Global);
+        vscode.workspace.getConfiguration('python').update('testing.pytestEnabled', undefined, vscode.ConfigurationTarget.Global);
+        vscode.workspace.getConfiguration('python').update('testing.pytestArgs', undefined, vscode.ConfigurationTarget.Global);
+        vscode.workspace.getConfiguration('python').update('testing.cwd', undefined, vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage("Cleared test configuration")
+    });
+
+    context.subscriptions.push(clearTestConfigurationCommand);
 }
 
 async function onActiveTextEditorChange(editor: vscode.TextEditor | undefined, pythonExtension: VscodePython.PythonExtension, context: vscode.ExtensionContext) {
@@ -51,10 +70,10 @@ async function onActiveTextEditorChange(editor: vscode.TextEditor | undefined, p
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(pythonFile));
     if (!workspaceFolder) return;
 
-    const poetryPath = FindClosestPyProjectTomlInPath(pythonFile, workspaceFolder.uri.fsPath);
-    if (!poetryPath) return;
+    const tomlPath = FindClosestPyProjectTomlInPath(pythonFile, workspaceFolder.uri.fsPath);
+    if (!tomlPath) return;
 
-    setPythonInterpreter(poetryPath, pythonExtension, context);
+    setPythonInterpreter(tomlPath, pythonExtension, context);
 }
 
 function FindClosestPyProjectTomlInPath(pythonFile: string, workspaceRoot: string) {
@@ -89,16 +108,18 @@ async function getPyEnvInterpreterPath(poetryPath: string, pyEnvNamePath: string
     }
 }
 
-async function setPythonInterpreter(poetryPath: string, pythonExtension: VscodePython.PythonExtension, context: vscode.ExtensionContext) {
-    const pyEnvNamePath = path.join(poetryPath, '.python-version');
+async function setPythonInterpreter(tomlPath: string, pythonExtension: VscodePython.PythonExtension, context: vscode.ExtensionContext) {
+    const pyEnvNamePath = path.join(tomlPath, '.python-version');
     if (!fs.existsSync(pyEnvNamePath)) {
         return
     }
 
-    const pythonInterpreterPath = await getPyEnvInterpreterPath(poetryPath, pyEnvNamePath);
+    const pythonInterpreterPath = await getPyEnvInterpreterPath(tomlPath, pyEnvNamePath);
     const currentInterpreter = pythonExtension.environments.getActiveEnvironmentPath().path
     if (pythonInterpreterPath && pythonInterpreterPath !== currentInterpreter && fs.existsSync(pythonInterpreterPath)) {
-        context.workspaceState.update('poetryPath', poetryPath);
+        vscode.window.showInformationMessage(`Setting tomlPath to ${tomlPath}`);
+        context.workspaceState.update('tomlPath', tomlPath);
+        context.workspaceState.update('interpreterPath', pythonInterpreterPath);
         await pythonExtension.environments.updateActiveEnvironmentPath(pythonInterpreterPath);
     }
 }
