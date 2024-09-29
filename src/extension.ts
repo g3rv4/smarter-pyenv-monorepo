@@ -40,8 +40,7 @@ export async function activate(context: vscode.ExtensionContext) {
             vscode.workspace.getConfiguration('python').update('testing.pytestEnabled', false, vscode.ConfigurationTarget.Global);
             fs.rm(path.join(workspaceFolder, ".pytest_cache"), { recursive: true, force: true }, () => {});
             setTimeout(() => {
-                vscode.window.showInformationMessage(`Setting test cwd to ${tomlPath}`);
-                vscode.window.showInformationMessage(`Setting pytestPath to ${pyTestPath}`);
+                vscode.window.showInformationMessage(`Testing the folder ${tomlPath}`);
                 vscode.workspace.getConfiguration('python').update('testing.pytestPath', pyTestPath, vscode.ConfigurationTarget.Global);
                 vscode.workspace.getConfiguration('python').update('testing.cwd', tomlPath, vscode.ConfigurationTarget.Global);
                 vscode.workspace.getConfiguration('python').update('testing.pytestEnabled', true, vscode.ConfigurationTarget.Global);
@@ -117,7 +116,6 @@ async function setPythonInterpreter(tomlPath: string, pythonExtension: VscodePyt
     const pythonInterpreterPath = await getPyEnvInterpreterPath(tomlPath, pyEnvNamePath);
     const currentInterpreter = pythonExtension.environments.getActiveEnvironmentPath().path
     if (pythonInterpreterPath && pythonInterpreterPath !== currentInterpreter && fs.existsSync(pythonInterpreterPath)) {
-        vscode.window.showInformationMessage(`Setting tomlPath to ${tomlPath}`);
         context.workspaceState.update('tomlPath', tomlPath);
         context.workspaceState.update('interpreterPath', pythonInterpreterPath);
         await pythonExtension.environments.updateActiveEnvironmentPath(pythonInterpreterPath);
