@@ -5,6 +5,7 @@ Simplify working on python monorepos that use pyenv.
 ## What does it do?
 
 * Automatically select the python interpreter when you open a file
+* Automatically picks the right interpreter when you're debugging a project (it performs the same search than it does to figure out the right one when opening the file: it looks at the `program` key of the debug configuration and if that's missing, it uses the `cwd` key).
 * Adds a command to the palette so that you can set pytest to use the tests of the current active project (better results are achieved by setting the `testpaths` on the `[tool.pytest.ini_options]` section of `pyproject.toml`)
 
 ## When is this useful?

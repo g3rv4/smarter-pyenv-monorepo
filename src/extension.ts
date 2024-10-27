@@ -38,7 +38,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
             const pyTestPath = path.join(path.dirname(interpreterPath), "pytest");
             vscode.workspace.getConfiguration('python').update('testing.pytestEnabled', false, vscode.ConfigurationTarget.Global);
-            fs.rm(path.join(workspaceFolder, ".pytest_cache"), { recursive: true, force: true }, () => {});
+            fs.rm(path.join(workspaceFolder, ".pytest_cache"), { recursive: true, force: true }, () => { });
             setTimeout(() => {
                 vscode.window.showInformationMessage(`Testing the folder ${tomlPath}`);
                 vscode.workspace.getConfiguration('python').update('testing.pytestPath', pyTestPath, vscode.ConfigurationTarget.Global);
@@ -60,7 +60,28 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(clearTestConfigurationCommand);
+
+    vscode.debug.registerDebugConfigurationProvider('debugpy', new MyDebugConfigurationProvider());
 }
+
+class MyDebugConfigurationProvider {
+    async resolveDebugConfigurationWithSubstitutedVariables(folder: vscode.WorkspaceFolder | undefined,
+        debugConfiguration: vscode.DebugConfiguration,
+        token: vscode.CancellationToken) {
+
+        const startAt = debugConfiguration.program ?? debugConfiguration.cwd + "/dummy";
+        const tomlPath = FindClosestPyProjectTomlInPath(startAt, debugConfiguration.workspaceFolder);
+        if (tomlPath) {
+            const pythonInterpreterPath = await getPythonInterpreterPathFromFolder(tomlPath);
+            debugConfiguration.debugAdapterPython = pythonInterpreterPath;
+            debugConfiguration.debugLauncherPython = pythonInterpreterPath;
+            debugConfiguration.python = pythonInterpreterPath;
+        }
+
+        return debugConfiguration;
+    }
+}
+
 
 async function onActiveTextEditorChange(editor: vscode.TextEditor | undefined, pythonExtension: VscodePython.PythonExtension, context: vscode.ExtensionContext) {
     if (!editor || editor.document.languageId !== 'python') return;
@@ -107,13 +128,17 @@ async function getPyEnvInterpreterPath(poetryPath: string, pyEnvNamePath: string
     }
 }
 
-async function setPythonInterpreter(tomlPath: string, pythonExtension: VscodePython.PythonExtension, context: vscode.ExtensionContext) {
+async function getPythonInterpreterPathFromFolder(tomlPath: string) {
     const pyEnvNamePath = path.join(tomlPath, '.python-version');
     if (!fs.existsSync(pyEnvNamePath)) {
         return
     }
 
-    const pythonInterpreterPath = await getPyEnvInterpreterPath(tomlPath, pyEnvNamePath);
+    return await getPyEnvInterpreterPath(tomlPath, pyEnvNamePath);
+}
+
+async function setPythonInterpreter(tomlPath: string, pythonExtension: VscodePython.PythonExtension, context: vscode.ExtensionContext) {
+    const pythonInterpreterPath = await getPythonInterpreterPathFromFolder(tomlPath);
     const currentInterpreter = pythonExtension.environments.getActiveEnvironmentPath().path
     if (pythonInterpreterPath && pythonInterpreterPath !== currentInterpreter && fs.existsSync(pythonInterpreterPath)) {
         context.workspaceState.update('tomlPath', tomlPath);

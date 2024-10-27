@@ -18,7 +18,7 @@
     "environment",
     "venv"
   ],
-  "version": "0.1.3",
+  "version": "0.1.4",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -27,7 +27,8 @@
   ],
   "activationEvents": [
     "onLanguage:python",
-    "workspaceContains:pyproject.toml"
+    "workspaceContains:pyproject.toml",
+    "onDebug"
   ],
   "main": "./out/extension.js",
   "contributes": {
